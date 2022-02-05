@@ -3,7 +3,7 @@
 
 if( ! fs.pathExistsSync( './package.json')) {
 	console.log("Can't find package.json in the current directory");
-	process.exit(0);
+	process.exit(1);
 }
 
 const contents = await fs.readFile('./package.json', 'utf8');
