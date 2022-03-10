@@ -21,6 +21,6 @@ if (!publish.destination) {
 
 fs.ensureDirSync(publish.destination);
 const filename = path.basename(file);
-const destFile = `${publish.destination}/${filename} `;
+const destFile = `${publish.destination}/${filename}`;
 console.log(`Copying ${filename} to ${destFile}`);
-await fs.copy(file, destFile);
+await $`cp ${file} ${destFile}`
