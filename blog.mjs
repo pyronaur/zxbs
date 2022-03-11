@@ -115,8 +115,25 @@ function readInput() {
 		};
 	}
 
+	if (argv.r) {
+		return {
+			command: 'run',
+			arg: argv.r
+		};
+	}
+
 	// If only one argument is provided, assume we want to open a blog post.
 	if (argv._.length === 2) {
+
+		// Special case for "blog run"
+		if (argv._[1] === "run") {
+			return {
+				command: 'run',
+				arg: '',
+			}
+		}
+
+
 		return {
 			command: 'open',
 			arg: argv._[1]
@@ -184,6 +201,10 @@ async function command_publish(needle, { drafts, content }) {
 	await $`mv ${draft} ${publishDirectory}`;
 }
 
+async function command_run(_unused, { site }) {
+	await $`cd ${site} && npm run dev`
+}
+
 /**
  * 
  * 
@@ -202,12 +223,15 @@ try {
 		draft: command_draft,
 		publish: command_publish,
 		open: command_open,
+		run: command_run,
 	}
 	const { command, arg } = readInput();
-	const content = `${os.homedir()}/Projects/Sites/pyronaur.com/src/content`;
-	const drafts = `${content}/drafts`;
+	const site = `${os.homedir()}/Projects/Sites/pyronaur.com`;
+	const content = `${site}/src/content`
+	const drafts = `${site}/src/content/drafts`
 
 	commands[command](arg, {
+		site,
 		content,
 		drafts,
 	});
