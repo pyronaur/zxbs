@@ -230,7 +230,7 @@ try {
 	const content = `${site}/src/content`
 	const drafts = `${site}/src/content/drafts`
 
-	commands[command](arg, {
+	await commands[command](arg, {
 		site,
 		content,
 		drafts,
