@@ -174,6 +174,9 @@ async function command_draft(name, { drafts }) {
 async function command_open(name, args) {
 
 	const { content } = args;
+	if( name === '.') {
+		return await $`open ${content}`
+	}
 	const posts = await globby(`${content}/**/*.md`);
 	const message = `\nFound multiple posts matching "${chalk.bold(name)}"\nWhich post you want to edit?`
 	const post = await fuzzySelect(name, posts, message);
@@ -241,6 +244,9 @@ try {
 	console.log(
 		`
 > Usage:
+Open blog directory:
+	blog open .
+
 Create a new draft:
 	blog <draft_name>
 	blog draft <draft_name>
