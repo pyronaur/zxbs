@@ -197,7 +197,14 @@ async function command_run(_unused, { site }) {
 }
 
 async function command_list(_unused, { content, drafts }) {
-	await $`tree -P '*.md' '${content}'`
+	$.verbose = false;
+	console.log(chalk.bold("## Drafts"));
+	await $`tree -P '*.md' '${drafts}'`.pipe(process.stdout)
+	
+	console.log("\n")
+
+	console.log(chalk.bold("## Posts"));
+	await $`tree -P '*.md' '${content}' -I 'drafts'`.pipe(process.stdout)
 }
 
 /**
