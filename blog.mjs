@@ -99,58 +99,41 @@ async function edit(file) {
 	await $`open -a MacDown ${file}`
 }
 
-function readInput() {
+function readInput(commands) {
 
-	if (argv.d) {
+	// blog -o some-slug
+	// blog -l
+	// etc.
+	const shortcut = commands.find(command => argv[command.shortcut])
+	if (shortcut) {
 		return {
-			command: 'draft',
-			arg: argv.d
-		};
-	}
-
-	if (argv.p) {
-		return {
-			command: 'publish',
-			arg: argv.p
-		};
-	}
-
-	if (argv.r) {
-		return {
-			command: 'run',
-			arg: argv.r
-		};
-	}
-
-	// If only one argument is provided, assume we want to open a blog post.
-	if (argv._.length === 2) {
-
-		// Special case for "blog run"
-		if (argv._[1] === "run") {
-			return {
-				command: 'run',
-				arg: '',
-			}
+			command: shortcut,
+			arg: argv[shortcut.shortcut]
 		}
+	}
 
-
+	// blog open some-slug
+	// blog ls
+	// etc.
+	const name = commands.find(command => argv._[1] === command.name);
+	if (name) {
 		return {
-			command: 'open',
+			command: name,
+			arg: argv._[2],
+		}
+	}
+
+	// Assume we're trying to open a blog post.
+	// blog some-slug
+	if (argv._.length === 2) {
+		return {
+			command: commands.find(command => command.name === 'open'),
 			arg: argv._[1]
 		}
 	}
 
 	// Return the second argument
-	const input = argv._[1];
-	const arg = argv._[2];
-	if (!input) {
-		throw new Error('Which command should I run?')
-	}
-
-	return {
-		command: input,
-		arg
-	};
+	return false;
 }
 
 async function command_draft(name, { drafts }) {
@@ -172,9 +155,14 @@ async function command_draft(name, { drafts }) {
 }
 
 async function command_open(name, args) {
+	console.log(name)
+
+	if (!name || typeof name !== 'string') {
+		throw new Error(`Which post to open?`)
+	}
 
 	const { content } = args;
-	if( name === '.') {
+	if (name === '.') {
 		return await $`open ${content}`
 	}
 	const posts = await globby(`${content}/**/*.md`);
@@ -208,6 +196,10 @@ async function command_run(_unused, { site }) {
 	await $`cd ${site} && npm run dev`
 }
 
+async function command_list(_unused, { content, drafts }) {
+	await $`tree -P '*.md' '${content}'`
+}
+
 /**
  * 
  * 
@@ -222,22 +214,51 @@ async function command_run(_unused, { site }) {
  * 
  */
 try {
-	const commands = {
-		draft: command_draft,
-		publish: command_publish,
-		open: command_open,
-		run: command_run,
-	}
-	const { command, arg } = readInput();
+
+	const commands = [
+		{
+			name: 'run',
+			shortcut: 'r',
+			action: command_run
+		},
+
+		{
+			name: 'ls',
+			shortcut: 'l',
+			action: command_list
+		},
+		{
+			name: 'draft',
+			shortcut: 'd',
+			action: command_draft
+		},
+		{
+			name: 'publish',
+			shortcut: 'p',
+			action: command_publish
+		},
+		{
+			name: 'open',
+			shortcut: 'o',
+			action: command_open
+		},
+	];
+
+	const { command, arg } = readInput(commands);
 	const site = `${os.homedir()}/Projects/Sites/pyronaur.com`;
 	const content = `${site}/src/content`
 	const drafts = `${site}/src/content/drafts`
 
-	await commands[command](arg, {
+	if (! command) {
+		throw new Error('Which command should I run?');
+	}
+
+	await command.action(arg, {
 		site,
 		content,
 		drafts,
 	});
+
 
 } catch (err) {
 	console.error(err.message);
@@ -259,6 +280,14 @@ Edit any post or draft:
 Move draft to published directory:
 	blog publish <draft_name>
 	blog -p <draft_name>
+
+Run Astro
+	blog run
+	blog -r
+
+List Posts
+	blog ls
+	blog -l
 `
 	)
 }
