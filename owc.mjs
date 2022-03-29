@@ -1,6 +1,5 @@
 #!/usr/bin/env zx
-import { site } from './utils/site.mjs';
+import { AstroManager } from './utils/astro-manager.mjs';
 const name = "owc";
-const path = `${os.homedir()}/Projects/Sites/OnWritingCode.com`;
-await site(name, path);
-
+const path = `${os.homedir()}/Projects/Sites/onwritingcode.com`;
+await AstroManager(name, path);

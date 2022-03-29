@@ -147,7 +147,7 @@ async function command_list(_unused, { content, drafts }) {
 }
 
 
-export async function site(name, site) {
+export async function AstroManager(name, site) {
 
 	try {
 
@@ -206,16 +206,17 @@ Open ${name} directory:
 
 Create a new draft:
 	${name} <draft_name>
-	${name} draft <draft_name>
 	${name} -d <draft_name>
+	${name} draft <draft_name>
 
 Edit any post or draft:
-	${name} open <name>
 	${name} <name>
+	${name} -o <name>
+	${name} open <name>
 
 Move draft to published directory:
-	${name} publish <draft_name>
 	${name} -p <draft_name>
+	${name} publish <draft_name>
 
 Run Astro
 	${name} run

@@ -1,6 +1,6 @@
 #!/usr/bin/env zx
-import { site } from './utils/site.mjs';
+import { AstroManager } from './utils/astro-manager.mjs';
 const name = "blog";
 const path = `${os.homedir()}/Projects/Sites/pyronaur.com`;
-await site(name, path);
+await AstroManager(name, path);
 
