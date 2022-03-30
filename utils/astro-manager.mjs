@@ -43,8 +43,12 @@ function readInput(commands) {
 	// blog -o some-slug
 	// blog -l
 	// etc.
-	const shortcut = commands.find(command => argv[command.shortcut])
+	const shortcut = commands
+		.filter(cmd => cmd.shortcut)
+		.find(cmd => argv[cmd.shortcut]);
+
 	if (shortcut) {
+		console.log(shortcut)
 		return {
 			command: shortcut,
 			arg: argv[shortcut.shortcut]
@@ -54,7 +58,7 @@ function readInput(commands) {
 	// blog open some-slug
 	// blog ls
 	// etc.
-	const name = commands.find(command => argv._[1] === command.name);
+	const name = commands.find(cmd => argv._[1] === cmd.name);
 	if (name) {
 		return {
 			command: name,
@@ -66,7 +70,7 @@ function readInput(commands) {
 	// blog some-slug
 	if (argv._.length === 2) {
 		return {
-			command: commands.find(command => command.name === 'open'),
+			command: commands.find(cmd => cmd.name === 'open'),
 			arg: argv._[1]
 		}
 	}
@@ -194,13 +198,13 @@ export async function AstroManager(name, site) {
 			},
 			{
 				name: 'path',
-				shortcut: 'p',
+				shortcut: '',
 				action: command_path
 			},
 		];
 
 		const { command, arg } = readInput(commands);
-		
+
 		const content = `${site}/src/content`
 		const drafts = `${site}/src/content/drafts`
 
@@ -248,6 +252,9 @@ List Posts
 Edit Site
 	${name} edit
 	${name} -e
+
+Show Site Path
+	${name} path
 `
 		)
 	}
