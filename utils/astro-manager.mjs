@@ -146,6 +146,10 @@ async function command_list(_unused, { content, drafts }) {
 	await $`tree -P '*.md' '${content}' -I 'drafts'`.pipe(process.stdout)
 }
 
+// Edit the Astro site in VSCode
+async function command_edit(name, { site }) {
+	await $`open -a "Visual Studio Code" ${site}`
+}
 
 export async function AstroManager(name, site) {
 
@@ -178,6 +182,11 @@ export async function AstroManager(name, site) {
 				shortcut: 'o',
 				action: command_open
 			},
+			{
+				name: 'edit',
+				shortcut: 'e',
+				action: command_edit
+			}
 		];
 
 		const { command, arg } = readInput(commands);
@@ -225,6 +234,10 @@ Run Astro
 List Posts
 	${name} ls
 	${name} -l
+
+Edit Site
+	${name} edit
+	${name} -e
 `
 		)
 	}
