@@ -151,6 +151,11 @@ async function command_edit(name, { site }) {
 	await $`open -a "Visual Studio Code" ${site}`
 }
 
+// Command to get the site path
+async function command_path(name, { site }) {
+	console.log(site)
+}
+
 export async function AstroManager(name, site) {
 
 	try {
@@ -186,7 +191,12 @@ export async function AstroManager(name, site) {
 				name: 'edit',
 				shortcut: 'e',
 				action: command_edit
-			}
+			},
+			{
+				name: 'path',
+				shortcut: 'p',
+				action: command_path
+			},
 		];
 
 		const { command, arg } = readInput(commands);
