@@ -88,6 +88,7 @@ async function command_draft(name, { drafts }) {
 
 	try {
 		const template = fileTemplate(name);
+		await fs.ensureDir( path.dirname(draft) );
 		await fs.writeFile(draft, template, { encoding: 'utf8' });
 	} catch (err) {
 		console.log(err);
