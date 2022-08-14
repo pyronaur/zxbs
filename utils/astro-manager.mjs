@@ -35,7 +35,7 @@ function fileTemplate(name) {
 }
 
 async function edit(file) {
-	await $`open -a MacDown ${file}`
+	await $`open -a Focused ${file}`
 }
 
 function readInput(commands) {
