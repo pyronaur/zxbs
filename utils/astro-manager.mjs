@@ -100,11 +100,14 @@ async function command_draft(name, { drafts }) {
 async function command_open(name, args) {
 	console.log(name);
 
+	const { content } = args;
 	if (!name || typeof name !== "string") {
-		throw new Error(`Which post to open?`);
+		if (true === await confirm(`Do you want to open the content directory?\n${chalk.dim(content)}`, 'y')) {
+			await $`open ${content}`;
+		}
+		throw new Error("Well then please specify which blog post to open.");
 	}
 
-	const { content } = args;
 	if (name === ".") {
 		return await $`open ${content}`;
 	}
