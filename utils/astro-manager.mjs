@@ -14,12 +14,12 @@ import { confirm, fuzzySelect } from "./helpers.mjs";
  *
  */
 function fileTemplate(name) {
-  const title = name
-    .split(/[-_]/)
-    .map((str) => str.charAt(0).toUpperCase() + str.slice(1))
-    .join(" ");
-  const date = new Date().toISOString().split("T")[0];
-  return `---
+	const title = name
+		.split(/[-_]/)
+		.map((str) => str.charAt(0).toUpperCase() + str.slice(1))
+		.join(" ");
+	const date = new Date().toISOString().split("T")[0];
+	return `---
 	title: ${title} 
 	preview: A new draft has been created.
 	date: ${date} 
@@ -31,231 +31,231 @@ function fileTemplate(name) {
 
 
 	` // trim leading tabs
-    .replace(/^\t+/gm, "");
+		.replace(/^\t+/gm, "");
 }
 
 async function edit(file) {
-  await $`open -a Focused ${file}`;
+	await $`open -a Focused ${file}`;
 }
 
 function readInput(commands) {
-  // blog -o some-slug
-  // blog -l
-  // etc.
-  const shortcut = commands
-    .filter((cmd) => cmd.shortcut)
-    .find((cmd) => argv[cmd.shortcut]);
+	// blog -o some-slug
+	// blog -l
+	// etc.
+	const shortcut = commands
+		.filter((cmd) => cmd.shortcut)
+		.find((cmd) => argv[cmd.shortcut]);
 
-  if (shortcut) {
-    console.log(shortcut);
-    return {
-      command: shortcut,
-      arg: argv[shortcut.shortcut],
-    };
-  }
+	if (shortcut) {
+		console.log(shortcut);
+		return {
+			command: shortcut,
+			arg: argv[shortcut.shortcut],
+		};
+	}
 
-  // blog open some-slug
-  // blog ls
-  // etc.
-  const name = commands.find((cmd) => argv._[1] === cmd.name);
-  if (name) {
-    return {
-      command: name,
-      arg: argv._[2],
-    };
-  }
+	// blog open some-slug
+	// blog ls
+	// etc.
+	const name = commands.find((cmd) => argv._[1] === cmd.name);
+	if (name) {
+		return {
+			command: name,
+			arg: argv._[2],
+		};
+	}
 
-  // Assume we're trying to open a blog post.
-  // blog some-slug
-  if (argv._.length === 2) {
-    return {
-      command: commands.find((cmd) => cmd.name === "open"),
-      arg: argv._[1],
-    };
-  }
+	// Assume we're trying to open a blog post.
+	// blog some-slug
+	if (argv._.length === 2) {
+		return {
+			command: commands.find((cmd) => cmd.name === "open"),
+			arg: argv._[1],
+		};
+	}
 
-  // Return the second argument
-  return false;
+	// Return the second argument
+	return false;
 }
 
 async function command_draft(name, { drafts }) {
-  const draft = `${drafts}/${name}.md`;
-  if (fs.pathExistsSync(draft)) {
-    await edit(draft);
-    return;
-  }
+	const draft = `${drafts}/${name}.md`;
+	if (fs.pathExistsSync(draft)) {
+		await edit(draft);
+		return;
+	}
 
-  try {
-    const template = fileTemplate(name);
-    await fs.ensureDir(path.dirname(draft));
-    await fs.writeFile(draft, template, { encoding: "utf8" });
-  } catch (err) {
-    console.log(err);
-    return;
-  }
+	try {
+		const template = fileTemplate(name);
+		await fs.ensureDir(path.dirname(draft));
+		await fs.writeFile(draft, template, { encoding: "utf8" });
+	} catch (err) {
+		console.log(err);
+		return;
+	}
 
-  await edit(draft);
+	await edit(draft);
 }
 
 async function command_open(name, args) {
-  console.log(name);
+	console.log(name);
 
-  if (!name || typeof name !== "string") {
-    throw new Error(`Which post to open?`);
-  }
+	if (!name || typeof name !== "string") {
+		throw new Error(`Which post to open?`);
+	}
 
-  const { content } = args;
-  if (name === ".") {
-    return await $`open ${content}`;
-  }
-  const posts = await globby(`${content}/**/*.{md,mdx}`);
-  const message = `\nFound multiple posts matching "${chalk.bold(
-    name
-  )}"\nWhich post you want to edit?`;
-  const post = await fuzzySelect(name, posts, message);
+	const { content } = args;
+	if (name === ".") {
+		return await $`open ${content}`;
+	}
+	const posts = await globby(`${content}/**/*.{md,mdx}`);
+	const message = `\nFound multiple posts matching "${chalk.bold(
+		name
+	)}"\nWhich post you want to edit?`;
+	const post = await fuzzySelect(name, posts, message);
 
-  if (!post) {
-    console.log(`Can't find any posts matching "${chalk.bold(name)}" `);
-    if (await confirm(`Would you like to create new draft called "${name}"?`)) {
-      await command_draft(name, args);
-    }
-    return;
-  }
+	if (!post) {
+		console.log(`Can't find any posts matching "${chalk.bold(name)}" `);
+		if (await confirm(`Would you like to create new draft called "${name}"?`)) {
+			await command_draft(name, args);
+		}
+		return;
+	}
 
-  edit(post);
+	edit(post);
 }
 
 async function command_publish(needle, { drafts, content }) {
-  const message = `\nFound multiple posts matching "${chalk.bold(
-    needle
-  )}"\nWhich post you want to publish?`;
-  const files = await globby(`${drafts}/*.{md,mdx}`);
-  const draft = await fuzzySelect(needle, files, message);
+	const message = `\nFound multiple posts matching "${chalk.bold(
+		needle
+	)}"\nWhich post you want to publish?`;
+	const files = await globby(`${drafts}/*.{md,mdx}`);
+	const draft = await fuzzySelect(needle, files, message);
 
-  const currentYear = new Date().getFullYear();
-  const publishDirectory = `${content}/${currentYear}`;
-  await fs.ensureDir(publishDirectory);
-  await $`mv ${draft} ${publishDirectory}`;
+	const currentYear = new Date().getFullYear();
+	const publishDirectory = `${content}/${currentYear}`;
+	await fs.ensureDir(publishDirectory);
+	await $`mv ${draft} ${publishDirectory}`;
 }
 
 async function command_run(_unused, { site }) {
-  await $`cd ${site} && npm run dev`;
+	await $`cd ${site} && npm run dev`;
 }
 
 function sortByPath(a, b) {
-  const aPath = a.split("/").slice(0, -1).join();
-  const bPath = b.split("/").slice(0, -1).join();
+	const aPath = a.split("/").slice(0, -1).join();
+	const bPath = b.split("/").slice(0, -1).join();
 
-  return aPath.localeCompare(bPath);
+	return aPath.localeCompare(bPath);
 }
 
 async function tree(name, pattern, ignorePattern = null) {
-  let files = await globby(pattern);
+	let files = await globby(pattern);
 
-  if (ignorePattern) {
-    files = files.filter((file) => !file.includes(ignorePattern));
-  }
+	if (ignorePattern) {
+		files = files.filter((file) => !file.includes(ignorePattern));
+	}
 
-  files.sort(sortByPath);
-  let currentPath = "";
+	files.sort(sortByPath);
+	let currentPath = "";
 
-  console.log(`${chalk.bold(`## ${name}`)}`);
-  for (const file of files) {
-    const relativeFilePath = path.relative(process.cwd(), file);
-    const pathBits = relativeFilePath.split("/");
-    const filename = pathBits.pop();
-    const iterationPath = pathBits.join("/");
-    const indentations = pathBits.length;
-    const indent = "   " + "  ".repeat(Math.max(indentations - 1, 0));
+	console.log(`${chalk.bold(`## ${name}`)}`);
+	for (const file of files) {
+		const relativeFilePath = path.relative(process.cwd(), file);
+		const pathBits = relativeFilePath.split("/");
+		const filename = pathBits.pop();
+		const iterationPath = pathBits.join("/");
+		const indentations = pathBits.length;
+		const indent = "   " + "  ".repeat(Math.max(indentations - 1, 0));
 
-    if (iterationPath !== currentPath) {
-      const iterationDir = pathBits.pop();
-      console.log(`\n${indent}${chalk.bold(iterationDir)}/`);
-      currentPath = iterationPath;
-    }
+		if (iterationPath !== currentPath) {
+			const iterationDir = pathBits.pop();
+			console.log(`\n${indent}${chalk.bold(iterationDir)}/`);
+			currentPath = iterationPath;
+		}
 
-    console.log(`${indent}• ${filename}`);
-  }
+		console.log(`${indent}• ${filename}`);
+	}
 }
 
 async function command_list(_unused, { content, drafts }) {
-  $.verbose = false;
-  console.log("") 
-  await tree("Drafts", `${drafts}/**/*.{md,mdx}`);
-  console.log("")
-  await tree("Published", `${content}/**/*.{md,mdx}`, drafts);
-  console.log("")
+	$.verbose = false;
+	console.log("")
+	await tree("Drafts", `${drafts}/**/*.{md,mdx}`);
+	console.log("")
+	await tree("Published", `${content}/**/*.{md,mdx}`, drafts);
+	console.log("")
 }
 
 // Edit the Astro site in VSCode
 async function command_edit(name, { site }) {
-  await $`open -a "Visual Studio Code" ${site}`;
+	await $`open -a "Visual Studio Code" ${site}`;
 }
 
 // Command to get the site path
 async function command_path(name, { site }) {
-  console.log(site);
+	console.log(site);
 }
 
 export async function AstroManager(name, site) {
-  try {
-    const commands = [
-      {
-        name: "run",
-        shortcut: "r",
-        action: command_run,
-      },
+	try {
+		const commands = [
+			{
+				name: "run",
+				shortcut: "r",
+				action: command_run,
+			},
 
-      {
-        name: "ls",
-        shortcut: "l",
-        action: command_list,
-      },
-      {
-        name: "draft",
-        shortcut: "d",
-        action: command_draft,
-      },
-      {
-        name: "publish",
-        shortcut: "p",
-        action: command_publish,
-      },
-      {
-        name: "open",
-        shortcut: "o",
-        action: command_open,
-      },
-      {
-        name: "edit",
-        shortcut: "e",
-        action: command_edit,
-      },
-      {
-        name: "path",
-        shortcut: "",
-        action: command_path,
-      },
-    ];
+			{
+				name: "ls",
+				shortcut: "l",
+				action: command_list,
+			},
+			{
+				name: "draft",
+				shortcut: "d",
+				action: command_draft,
+			},
+			{
+				name: "publish",
+				shortcut: "p",
+				action: command_publish,
+			},
+			{
+				name: "open",
+				shortcut: "o",
+				action: command_open,
+			},
+			{
+				name: "edit",
+				shortcut: "e",
+				action: command_edit,
+			},
+			{
+				name: "path",
+				shortcut: "",
+				action: command_path,
+			},
+		];
 
-    const { command, arg } = readInput(commands);
+		const { command, arg } = readInput(commands);
 
-    const content = `${site}/src/content`;
-    const drafts = `${site}/src/content/drafts`;
+		const content = `${site}/src/content`;
+		const drafts = `${site}/src/content/drafts`;
 
-    if (!command) {
-      throw new Error("Which command should I run?");
-    }
+		if (!command) {
+			throw new Error("Which command should I run?");
+		}
 
-    await command.action(arg, {
-      site,
-      content,
-      drafts,
-    });
-  } catch (err) {
-    console.error(err.message);
-    console.log(
-      `
+		await command.action(arg, {
+			site,
+			content,
+			drafts,
+		});
+	} catch (err) {
+		console.error(err.message);
+		console.log(
+			`
 > Usage:
 Open ${name} directory:
 	${name} open .
@@ -289,6 +289,6 @@ Edit Site
 Show Site Path
 	${name} path
 `
-    );
-  }
+		);
+	}
 }
