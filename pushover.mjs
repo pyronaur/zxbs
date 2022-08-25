@@ -1,4 +1,5 @@
 #!/usr/bin/env zx
+$.verbose = false;
 const token = process.env.PUSHOVER_TOKEN;
 const user = process.env.PUSHOVER_USER;
 
@@ -19,7 +20,8 @@ if (argv.title) {
 	title = argv.title;
 }
 
-console.log('Sending message: ', "message");
+console.log('Sending message: ', "message")
+
 const result = await fetch(`https://api.pushover.net/1/messages.json`, {
 	method: 'POST',
 	headers: {
