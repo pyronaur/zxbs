@@ -20,7 +20,7 @@ if (argv.title) {
 	title = argv.title;
 }
 
-console.log('Sending message: ', "message")
+console.log('Sending message: ', message)
 
 const result = await fetch(`https://api.pushover.net/1/messages.json`, {
 	method: 'POST',
