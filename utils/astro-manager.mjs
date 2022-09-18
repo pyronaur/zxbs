@@ -135,10 +135,18 @@ async function command_publish(needle, { drafts, content }) {
 	const files = await globby(`${drafts}/*.{md,mdx}`);
 	const draft = await fuzzySelect(needle, files, message);
 
+	// Update the post date to the date of publishing
+	let postContent = await fs.readFile(draft, { encoding: "utf8" });
+	const today = new Date().toISOString().split("T")[0];
+	postContent = postContent.replace(/^date:.*$/gim, `date: ${today}`);
+
 	const currentYear = new Date().getFullYear();
 	const publishDirectory = `${content}/${currentYear}`;
+	const publishPostPath = `${publishDirectory}/${path.basename(draft)}`;
 	await fs.ensureDir(publishDirectory);
-	await $`mv ${draft} ${publishDirectory}`;
+	await fs.writeFileSync(publishPostPath, postContent);
+	await fs.remove(draft);
+	console.log(`Published ${chalk.bold(path.basename(draft))}\n${chalk.dim(publishPostPath)}`);
 }
 
 async function command_run(_unused, { site }) {
