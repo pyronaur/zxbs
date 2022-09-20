@@ -8,7 +8,7 @@ if (!token || !user) {
 	process.exit(1);
 }
 
-const message = argv._.slice(1).join(' ');
+const message = argv._.join(' ');
 
 if (!message) {
 	console.error('Missing message');

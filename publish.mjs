@@ -1,5 +1,5 @@
 #!/usr/bin/env zx
-const file = argv._[1];
+const file = argv._[0];
 
 if (!file) {
 	throw new Error("You must specify a file to publish\nUsage: publish <file>");

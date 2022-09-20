@@ -1,7 +1,7 @@
 #!/usr/bin/env zx
 const util = require("util");
 
-const files = argv._.slice(1, 3);
+const files = argv._.slice(0, 2);
 
 if (files.length !== 2) {
   console.log("To find your yamlicates, you need to pass two files.");

@@ -3,8 +3,8 @@
 
 $.verbose = false;
 const stdin = await $`cat /dev/stdin`;
-const pattern = argv._[1];
-const item = argv._[2] ?? false
+const pattern = argv._[0];
+const item = argv._[1] ?? false
 
 const flags = argv.flags || 'gm'
 const result = stdin.stdout.match(new RegExp(pattern, flags));

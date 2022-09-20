@@ -57,20 +57,20 @@ function readInput(commands) {
 	// blog open some-slug
 	// blog ls
 	// etc.
-	const name = commands.find((cmd) => argv._[1] === cmd.name);
+	const name = commands.find((cmd) => argv._[0] === cmd.name);
 	if (name) {
 		return {
 			command: name,
-			arg: argv._[2],
+			arg: argv._[0],
 		};
 	}
 
 	// Assume we're trying to open a blog post.
 	// blog some-slug
-	if (argv._.length === 2) {
+	if (argv._.length === 1) {
 		return {
 			command: commands.find((cmd) => cmd.name === "open"),
-			arg: argv._[1],
+			arg: argv._[0],
 		};
 	}
 
