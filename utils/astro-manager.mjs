@@ -203,6 +203,32 @@ async function command_edit(name, { site }) {
 	await $`open -a "Visual Studio Code" ${site}`;
 }
 
+async function command_rename(name, { content }) {
+	const posts = await globby(`${content}/**/*.{md,mdx}`);
+	const message = `\nFound multiple posts matching "${chalk.bold(
+		name
+	)}"\nWhich post you want to rename?`;
+	const post = await fuzzySelect(name, posts, message);
+
+	if (!argv._[2]) {
+		throw new Error("Please specify the new name for the post.");
+	}
+	const postName = path.basename(post);
+	const postSlug = postName.replace(/\.mdx?$/, "");
+	const newName = postName.replace(postSlug, argv._[2]);
+	const newPath = post.replace(postName, newName);
+
+	if (! await confirm(`Rename ${chalk.bold(postName)} to ${chalk.bold(newName)}?`)) {
+		return;
+	}
+
+	if (fs.pathExistsSync(newPath)) {
+		throw new Error(`Can't rename to ${newName} because it already exists`);
+	}
+
+	await fs.rename(post, newPath);
+}
+
 // Command to get the site path
 async function command_path(name, { site }) {
 	console.log(site);
@@ -247,6 +273,16 @@ export async function AstroManager(name, site) {
 				shortcut: "",
 				action: command_path,
 			},
+			{
+				name: "rename",
+				shortcut: "",
+				action: command_rename,
+			},
+			{
+				name: "mv",
+				shortcut: "",
+				action: command_rename,
+			}
 		];
 
 		const { command, arg } = readInput(commands);
@@ -292,6 +328,10 @@ Run Astro
 List Posts
 	${name} ls
 	${name} -l
+
+Rename Post
+	${name} mv <old_name> <new_name>
+	${name} rename <old_name> <new_name>
 
 Edit Site
 	${name} edit
