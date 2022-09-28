@@ -61,7 +61,7 @@ function readInput(commands) {
 	if (name) {
 		return {
 			command: name,
-			arg: argv._[0],
+			arg: argv._[1],
 		};
 	}
 
