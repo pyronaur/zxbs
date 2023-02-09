@@ -2,7 +2,7 @@
 const path = argv._.join(' ')
 
 if( !path ) {
-  console.log(`Usage`)
+  console.log(`Open any zoxide directory in Finder:\nUsage: o <path>`);
   process.exit(1);
 }
 
