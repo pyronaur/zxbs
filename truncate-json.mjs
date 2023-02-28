@@ -4,7 +4,7 @@ const json = await fs.readJSON(file);
 
 function truncate(value) {
 	if (typeof value === 'string') {
-		return value.slice(0, 100);
+		return value.slice(0, 500);
 	}
 	if (Array.isArray(value)) {
 		return value.map(truncate);
