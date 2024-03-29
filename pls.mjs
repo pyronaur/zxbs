@@ -1,15 +1,20 @@
-#!/usr/bin/env zx
 // List all the scripts defined in the package.json file
-
-if( ! fs.pathExistsSync( './package.json')) {
+if (!await Bun.file('./package.json').exists()) {
 	console.log("Can't find package.json in the current directory");
 	process.exit(1);
 }
 
-const contents = await fs.readFile('./package.json', 'utf8');
-const json = JSON.parse(contents);
+const json = await Bun.file('./package.json').json();
 
-for( const script of Object.keys( json.scripts ) ) {
+console.log(json);
+
+if (!json.scripts) {
+	console.log("No scripts found in package.json");
+	console.log("Only found keys: " + Object.keys(json).join(", "));
+	process.exit(1);
+}
+
+for (const script of Object.keys(json.scripts)) {
 	const command = json.scripts[script];
 	console.log(chalk.bold(script) + "\n" + command);
 	console.log();

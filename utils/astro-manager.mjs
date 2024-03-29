@@ -87,7 +87,7 @@ async function command_draft(name, { drafts }) {
 
 	try {
 		const template = fileTemplate(name);
-		await fs.ensureDir(path.dirname(draft));
+		await fs.ensureDirectory(path.dirname(draft));
 		await fs.writeFile(draft, template, { encoding: "utf8" });
 	} catch (err) {
 		console.log(err);
@@ -143,7 +143,7 @@ async function command_publish(needle, { drafts, content }) {
 	const currentYear = new Date().getFullYear();
 	const publishDirectory = `${content}/${currentYear}`;
 	const publishPostPath = `${publishDirectory}/${path.basename(draft)}`;
-	await fs.ensureDir(publishDirectory);
+	await fs.ensureDirectory(publishDirectory);
 	await fs.writeFileSync(publishPostPath, postContent);
 	await fs.remove(draft);
 	console.log(`Published ${chalk.bold(path.basename(draft))}\n${chalk.dim(publishPostPath)}`);
@@ -190,7 +190,7 @@ async function tree(name, pattern, ignorePattern = null) {
 }
 
 async function command_list(_unused, { content, drafts }) {
-	$.verbose = false;
+	BUNS.verbose = false;
 	console.log("")
 	await tree("Drafts", `${drafts}/**/*.{md,mdx}`);
 	console.log("")

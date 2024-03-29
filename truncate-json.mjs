@@ -1,4 +1,5 @@
 #!/usr/bin/env zx
+// desc: helo world
 const file = argv._[0];
 const json = await fs.readJSON(file);
 
@@ -17,4 +18,4 @@ function truncate(value) {
 	return value;
 }
 
-await fs.writeJSON(`${file}-truncated `, truncate(json), {spaces: 2});
+await fs.writeJSON(`${file}-truncated `, truncate(json), { spaces: 2 });

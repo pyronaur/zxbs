@@ -45,5 +45,5 @@ export async function fuzzySelect(needle, arr, message) {
 		return results[0];
 	}
 
-	return await selection(results, message);
+	return await select(results, message);
 }

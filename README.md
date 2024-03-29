@@ -1,2 +1,2 @@
-# zxbs
-A collection of some of my zxb scripts
+# bunmagics
+A collection of some of my bunmagic scripts
