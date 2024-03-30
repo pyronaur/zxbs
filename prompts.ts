@@ -36,6 +36,12 @@ async function remove(prompts: string[]) {
 	}
 }
 
+async function edit(names: string[]) {
+	const name = await select("Select a prompt", names);
+	const targetFile = `${dir}/${name}.md`;
+	await openEditor(targetFile);
+}
+
 export default async function prompts() {
 	await ensureDirectory(dir);
 	let name = args[0]
@@ -43,6 +49,10 @@ export default async function prompts() {
 	const names = prompts.map(prompt => prompt.split('/').at(-1)?.split('.')[0]);
 	if (name === "rm") {
 		await remove(names);
+		return;
+	}
+	if (name === "edit") {
+		await edit(names);
 		return;
 	}
 	if (!name) {
