@@ -13,3 +13,5 @@ console.log(ansis.bold("Word Count:	"), ansis.bold.green(`${wordCount} words`))
 
 // Character Count
 console.log(ansis.bold("Character Count:"), ansis.bold.green(`${text.length} characters`))
+
+export { }
