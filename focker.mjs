@@ -1,5 +1,3 @@
-$.verbose = false;
-
 function log() {
   console.log(chalk.green("[Focker] "), ...arguments);
 }
