@@ -6,6 +6,6 @@ if (!path) {
 	process.exit(1);
 }
 
-const resolved = await $`zoxide query ${path}`;
+const resolved = await $`zoxide query ${path}`.text();
 console.log(`Open ${resolved}`);
-await $`open ${resolved}`;
+await $`open ${resolved.trim()}`;
