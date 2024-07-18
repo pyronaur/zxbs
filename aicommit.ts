@@ -1,8 +1,14 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { $, ansis } from "bunmagic";
 
 const anthropic = new Anthropic({
   apiKey: Bun.env.ANTHROPIC_API_KEY,
 });
+
+async function stageAllChanges(): Promise<void> {
+  await $`git add -A`.quiet();
+  console.log(ansis.green("All changes have been staged."));
+}
 
 async function getUncommittedChanges(): Promise<string> {
   return (await $`git diff --staged`.quiet().text()).trim();
@@ -14,7 +20,7 @@ async function generateCommitMessage(changes: string): Promise<string> {
     messages: [
       {
         role: "user",
-        content: `Generate a concise and informative commit message based on the following Git diff:\n\n${changes}\n\nCommit message:`,
+        content: `Create a git commit message based on the following changes:\n\n${changes}\n\n 3 Commit message variants (max 8 words each):`,
       },
     ],
     model: "claude-3-sonnet-20240229",
@@ -29,10 +35,11 @@ async function commitChanges(message: string): Promise<void> {
 }
 
 async function main() {
+  await stageAllChanges();
   const changes = await getUncommittedChanges();
 
   if (!changes) {
-    console.log(ansis.yellow("No uncommitted changes found."));
+    console.log(ansis.yellow("No changes to commit."));
     return;
   }
 
@@ -72,6 +79,4 @@ async function main() {
   await commitChanges(commitMessage);
 }
 
-main().catch((error) => {
-  console.error(ansis.red("An error occurred:"), error);
-});
+await main();
