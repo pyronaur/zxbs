@@ -24,8 +24,8 @@ async function generateCommitMessages(changes: string): Promise<string[]> {
       "Each commit message should be 8 words or less." +
       "Example output: " +
       "build only if upstream version doesn't already exist\n" +
-	  "Only build if upstream version doesn't already exist\n" +
-	  "Check if upstream version exists before building\n",
+      "Only build if upstream version doesn't already exist\n" +
+      "Check if upstream version exists before building\n",
     messages: [
       {
         role: "user",
@@ -45,6 +45,14 @@ async function commitChanges(message: string): Promise<void> {
 }
 
 async function main() {
+  const unstaged = await $`git diff`.quiet().text();
+  const staged = await $`git diff --staged`.quiet().text();
+
+  if (!unstaged && !staged) {
+    console.log(ansis.yellow("No changes detected."));
+    return;
+  }
+
   await stageAllChanges();
   const changes = await getUncommittedChanges();
 
