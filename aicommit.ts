@@ -14,19 +14,29 @@ async function getUncommittedChanges(): Promise<string> {
   return (await $`git diff --staged`.quiet().text()).trim();
 }
 
-async function generateCommitMessage(changes: string): Promise<string> {
+async function generateCommitMessages(changes: string): Promise<string[]> {
   const message = await anthropic.messages.create({
-    max_tokens: 1024,
+    max_tokens: 4096,
+    system:
+      "You are a helpful assistant that generates git commit messages." +
+      "You should generate only 3 commit message variants based on the provided git log." +
+      "Each line is a commit message, do not use any ordering or markdown." +
+      "Each commit message should be 8 words or less." +
+      "Example output: " +
+      "build only if upstream version doesn't already exist\n" +
+	  "Only build if upstream version doesn't already exist\n" +
+	  "Check if upstream version exists before building\n",
     messages: [
       {
         role: "user",
-        content: `Create a git commit message based on the following changes:\n\n${changes}\n\n 3 Commit message variants (max 8 words each):`,
+        content: changes,
       },
     ],
     model: "claude-3-sonnet-20240229",
   });
 
-  return message.content[0].text.trim();
+  const text = message.content[0].text.trim();
+  return text.split("\n").map((line: string) => line.trim());
 }
 
 async function commitChanges(message: string): Promise<void> {
@@ -43,40 +53,39 @@ async function main() {
     return;
   }
 
-  let commitMessage = await generateCommitMessage(changes);
-  let isCommitAccepted = false;
+  let messages = await generateCommitMessages(changes);
+  let selectedMessage = "";
 
-  while (!isCommitAccepted) {
-    console.log(ansis.bold(`\nProposed commit message:\n${commitMessage}\n`));
-    const userResponse = await ack("Do you like this commit message?", "n");
+  while (!selectedMessage) {
+    const options = [...messages, "Regenerate"];
+    const choice = await select(
+      "Select a commit message or regenerate:",
+      options
+    );
 
-    if (userResponse) {
-      isCommitAccepted = true;
+    if (choice === "Regenerate") {
+      const suggestions = prompt(
+        "Please provide suggestions or feedback for improvement:"
+      );
+      messages = await generateCommitMessages(
+        `${changes}\n\nPrevious suggestions: ${messages.join(
+          ", "
+        )}\n\nUser feedback: ${suggestions}`
+      );
     } else {
-      const options = ["Regenerate", "Edit manually", "Cancel"];
-      const choice = await select("What would you like to do?", options);
-
-      switch (choice) {
-        case "Regenerate":
-          const suggestions = await prompt(
-            "Please provide suggestions or feedback for improvement:"
-          );
-          commitMessage = await generateCommitMessage(
-            `${changes}\n\nPrevious suggestion: ${commitMessage}\n\nUser feedback: ${suggestions}`
-          );
-          break;
-        case "Edit manually":
-          commitMessage = await prompt("Please enter your own commit message:");
-          isCommitAccepted = true;
-          break;
-        case "Cancel":
-          console.log(ansis.yellow("Commit cancelled."));
-          return;
-      }
+      selectedMessage = choice;
     }
   }
 
-  await commitChanges(commitMessage);
+  console.log(ansis.bold(`\nSelected commit message:\n${selectedMessage}\n`));
+  const userResponse = ack("Do you want to use this commit message?");
+
+  if (!userResponse) {
+    console.log(ansis.yellow("Commit cancelled."));
+    return;
+  }
+
+  await commitChanges(selectedMessage);
 }
 
 await main();
