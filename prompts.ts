@@ -1,11 +1,10 @@
-import { unlink } from 'fs/promises';
-
 /**
  * AI Prompt Manager
  * @usage [[command] [name]] - Directly run a command on the specified prompt
  * @usage [[command]]  - Run the command without specifying the prompt name, will show a prompt selection menu
  * @usage [[name]]  - Copy the specified prompt to the clipboard or open the editor
  */
+import { unlink } from 'fs/promises';
 const dir = `${$HOME}/.prompts`;
 
 
