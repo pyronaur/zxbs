@@ -1,3 +1,8 @@
+/**
+ * Docker CLI Utilities (tail, restart)
+ * @param [[tail]] - Tail the logs of a docker container
+ * @param [[restart]] - Restart a docker container
+ */
 async function selectDockerImage() {
 	const containers = await $`docker ps --format '{{json .}}'`.text();
 	const containerMap: { value: string; label: string }[] = [];
