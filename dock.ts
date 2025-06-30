@@ -3,8 +3,9 @@
  * @param [[tail]] - Tail the logs of a docker container
  * @param [[restart]] - Restart a docker container
  */
+
 async function selectDockerImage() {
-	const containers = await $`docker ps --format '{{json .}}'`.text();
+	const containers = await $`ssh kaste "/usr/local/bin/docker ps --format '{{json .}}'"`.text();
 	const containerMap: { value: string; label: string }[] = [];
 	containers
 		.split("\n")
@@ -13,22 +14,22 @@ async function selectDockerImage() {
 		.map((c: string) => JSON.parse(c))
 		.forEach((c: any) => {
 			containerMap.push({
-				label: c.Image,
+				label: `${c.Names} (${c.Image})`,
 				value: c.ID,
 			});
 		});
 
-	return await select("Select a container to tail", containerMap);
+	return await select(`Select a container on kaste`, containerMap);
 }
 async function tailDockerLogs() {
 	const image = await selectDockerImage();
-	await $`docker logs -f ${image}`;
+	await $`ssh kaste /usr/local/bin/docker logs -f ${image}`;
 }
 
 async function restartDockerContainer() {
 	const image = await selectDockerImage();
-	console.log(`Restarting container ${image}`);
-	await $`docker restart ${image}`;
+	console.log(`Restarting container ${image} on kaste`);
+	await $`ssh kaste /usr/local/bin/docker restart ${image}`;
 }
 
 export default async function dock() {

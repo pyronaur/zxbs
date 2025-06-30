@@ -1,4 +1,4 @@
-import { confirm, fuzzySelect } from "./helpers.mjs";
+import { fuzzySelect } from "./helpers.mjs";
 
 /**
  *
@@ -35,7 +35,7 @@ function fileTemplate(name) {
 }
 
 async function edit(file) {
-	await $`open -a Focused ${file}`;
+	await $`open -a Obsidian ${file}`;
 }
 
 function readInput(commands) {
@@ -79,16 +79,18 @@ function readInput(commands) {
 }
 
 async function command_draft(name, { drafts }) {
-	const draft = `${drafts}/${name}.md`;
-	if (fs.pathExistsSync(draft)) {
+	const draft = SAF.from(`${drafts}/${name}.md`);
+
+	if (await draft.exists()) {
 		await edit(draft);
 		return;
 	}
 
 	try {
 		const template = fileTemplate(name);
-		await fs.ensureDirectory(path.dirname(draft));
-		await fs.writeFile(draft, template, { encoding: "utf8" });
+		await draft.ensureDirectory();
+		await draft.write(template);
+		await sleep(100);
 	} catch (err) {
 		console.log(err);
 		return;
@@ -102,7 +104,7 @@ async function command_open(name, args) {
 
 	const { content } = args;
 	if (!name || typeof name !== "string") {
-		if (true === await confirm(`Do you want to open the content directory?\n${chalk.dim(content)}`, 'y')) {
+		if (true === await ask(`Do you want to open the content directory?\n${chalk.dim(content)}`, 'y')) {
 			await $`open ${content}`;
 		}
 		throw new Error("Well then please specify which blog post to open.");
@@ -111,7 +113,7 @@ async function command_open(name, args) {
 	if (name === ".") {
 		return await $`open ${content}`;
 	}
-	const posts = await globby(`${content}/**/*.{md,mdx}`);
+	const posts = await glob(`${content}/**/*.{md,mdx}`);
 	const message = `\nFound multiple posts matching "${chalk.bold(
 		name
 	)}"\nWhich post you want to edit?`;
@@ -132,21 +134,21 @@ async function command_publish(needle, { drafts, content }) {
 	const message = `\nFound multiple posts matching "${chalk.bold(
 		needle
 	)}"\nWhich post you want to publish?`;
-	const files = await globby(`${drafts}/*.{md,mdx}`);
-	const draft = await fuzzySelect(needle, files, message);
+	const files = await glob(`${drafts}/*.{md,mdx}`);
+	const draft = SAF.from(await fuzzySelect(needle, files, message));
 
 	// Update the post date to the date of publishing
-	let postContent = await fs.readFile(draft, { encoding: "utf8" });
+	
+	let postContent = await draft.file.text();
 	const today = new Date().toISOString().split("T")[0];
 	postContent = postContent.replace(/^date:.*$/gim, `date: ${today}`);
 
 	const currentYear = new Date().getFullYear();
-	const publishDirectory = `${content}/${currentYear}`;
-	const publishPostPath = `${publishDirectory}/${path.basename(draft)}`;
-	await fs.ensureDirectory(publishDirectory);
-	await fs.writeFileSync(publishPostPath, postContent);
-	await fs.remove(draft);
-	console.log(`Published ${chalk.bold(path.basename(draft))}\n${chalk.dim(publishPostPath)}`);
+	const publish = SAF.from(`${content}/${currentYear}/${draft.name}`);
+	await publish.ensureDirectory();
+	await publish.write(postContent);
+	await draft.delete();
+	console.log(`Published ${chalk.bold(draft.name)}\n${chalk.dim(publish.path)}`);
 }
 
 async function command_run(_unused, { site }) {
@@ -161,7 +163,7 @@ function sortByPath(a, b) {
 }
 
 async function tree(name, pattern, ignorePattern = null) {
-	let files = await globby(pattern);
+	let files = await glob(pattern);
 
 	if (ignorePattern) {
 		files = files.filter((file) => !file.includes(ignorePattern));
@@ -190,7 +192,7 @@ async function tree(name, pattern, ignorePattern = null) {
 }
 
 async function command_list(_unused, { content, drafts }) {
-	BUNS.verbose = false;
+	flags.verbose = false;
 	console.log("")
 	await tree("Drafts", `${drafts}/**/*.{md,mdx}`);
 	console.log("")
@@ -200,11 +202,11 @@ async function command_list(_unused, { content, drafts }) {
 
 // Edit the Astro site in VSCode
 async function command_edit(name, { site }) {
-	await $`open -a "Visual Studio Code" ${site}`;
+	await $`code ${site}`;
 }
 
 async function command_rename(name, { content }) {
-	const posts = await globby(`${content}/**/*.{md,mdx}`);
+	const posts = await glob(`${content}/**/*.{md,mdx}`);
 	const message = `\nFound multiple posts matching "${chalk.bold(
 		name
 	)}"\nWhich post you want to rename?`;
@@ -288,7 +290,7 @@ export async function AstroManager(name, site) {
 		const { command, arg } = readInput(commands);
 
 		const content = `${site}/src/content`;
-		const drafts = `${site}/src/content/drafts`;
+		const drafts = `${site}/src/content/draft`;
 
 		if (!command) {
 			throw new Error("Which command should I run?");

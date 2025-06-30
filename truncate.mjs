@@ -7,7 +7,7 @@ if (!file) {
 }
 
 console.log(`Truncating ${file}`);
-const shouldTruncate = await question(`Continue? (Y/n) `);
+const shouldTruncate = confirm(`Continue? (Y/n) `);
 if (shouldTruncate.toLowerCase() === "n") {
   exit(0);
 }

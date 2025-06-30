@@ -1,5 +1,5 @@
 #!/usr/bin/env zx
-BUNS.verbose = false;
+flags.verbose = false;
 const token = process.env.PUSHOVER_TOKEN;
 const user = process.env.PUSHOVER_USER;
 

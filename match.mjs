@@ -1,7 +1,7 @@
 #!/usr/bin/env zx
 // desc: Regex match anything piped to this command.
 
-BUNS.verbose = false;
+flags.verbose = false;
 const stdin = await $`cat /dev/stdin`;
 const pattern = argv._[0];
 const item = argv._[1] ?? false;
